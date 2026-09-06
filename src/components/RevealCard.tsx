@@ -1,7 +1,8 @@
 import { useCallback, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
 
 type Props = {
-  playerName: string
+  /** Quem vai receber a palavra na cabeça */
+  targetName: string
   word: string
   theme: string
   playerIndex: number
@@ -12,7 +13,7 @@ type Props = {
 const REVEAL_THRESHOLD = 110
 
 export function RevealCard({
-  playerName,
+  targetName,
   word,
   theme,
   playerIndex,
@@ -68,13 +69,13 @@ export function RevealCard({
   return (
     <div className={`reveal-screen ${closing ? 'is-closing' : ''}`}>
       <p className="reveal-meta">
-        Jogador {playerIndex + 1} de {total}
+        Identidade {playerIndex + 1} de {total}
       </p>
-      <h2 className="reveal-name">{playerName}</h2>
+      <h2 className="reveal-name">Cabeça de {targetName}</h2>
       <p className="reveal-hint">
         {revealed
-          ? 'Memorize e esconda antes de passar o celular'
-          : 'Arraste o card para cima para descobrir quem você é'}
+          ? `Passe “${word}” para ${targetName} — e esconda a tela`
+          : `${targetName} não pode olhar. Arraste para cima e descubra a palavra.`}
       </p>
 
       <div className="reveal-stage">
@@ -94,23 +95,25 @@ export function RevealCard({
               </span>
               <span>Arraste para cima</span>
             </div>
-            <p className="front-label">Quem sou eu?</p>
+            <p className="front-label">O que vai na cabeça?</p>
           </div>
 
           <div className="reveal-card-face reveal-card-back" aria-hidden={!revealed}>
             <p className="back-theme">{theme || 'Identidade'}</p>
             <p className="back-word">{word}</p>
-            <p className="back-note">Você não pode dizer o que é — só responder sim ou não.</p>
+            <p className="back-pass">
+              Passe <strong>{word}</strong> para <strong>{targetName}</strong>
+            </p>
           </div>
         </div>
       </div>
 
       {revealed ? (
         <button type="button" className="btn btn-primary" onClick={hideAndPass}>
-          Esconder e passar
+          Pronto — próxima pessoa
         </button>
       ) : (
-        <p className="reveal-footer">Só {playerName} deve olhar a tela</p>
+        <p className="reveal-footer">{targetName} não pode ver a tela</p>
       )}
     </div>
   )

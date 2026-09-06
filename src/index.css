@@ -1,13 +1,18 @@
 :root {
-  --bg: #0c1412;
-  --bg-elev: #15201c;
-  --ink: #f3efe6;
-  --muted: #a8b5ae;
-  --accent: #e8c36a;
-  --accent-deep: #c49a3c;
-  --line: rgba(243, 239, 230, 0.12);
-  --danger: #e07a6a;
+  --bg: #121212;
+  --bg-elev: #1a1a1a;
+  --bg-card: #1c1c1c;
+  --ink: #ffffff;
+  --muted: #9a9a9a;
+  --accent: #ffcc00;
+  --accent-deep: #f0a800;
+  --accent-soft: rgba(255, 204, 0, 0.14);
+  --line: rgba(255, 204, 0, 0.22);
+  --line-soft: rgba(255, 255, 255, 0.08);
+  --danger: #ff6b6b;
+  --ok: #5fbf88;
   --radius: 18px;
+  --radius-pill: 999px;
   --font-display: 'Fraunces', Georgia, serif;
   --font-body: 'Outfit', system-ui, sans-serif;
   color: var(--ink);
@@ -49,6 +54,6 @@ button {
 }
 
 button:disabled {
-  opacity: 0.4;
+  opacity: 0.45;
   cursor: not-allowed;
 }

@@ -7,16 +7,29 @@ export type Player = {
 
 export type Assignment = {
   playerId: string
-  /** Índice da palavra recebida (quem escreveu) */
   wordFromIndex: number
   word: string
   theme: string
 }
 
-export type Screen =
-  | 'home'
-  | 'players'
-  | 'write'
-  | 'handoff'
-  | 'reveal'
-  | 'done'
+export type GameMode = 'single' | 'multi' | null
+
+export type RoomPlayer = {
+  id: string
+  name: string
+  word: string
+  ready: boolean
+  assignedWord: string
+  assignedTheme: string
+}
+
+export type RoomPhase = 'lobby' | 'playing' | 'done'
+
+export type RoomState = {
+  id: string
+  name: string
+  theme: string
+  phase: RoomPhase
+  hostId: string
+  players: RoomPlayer[]
+}
