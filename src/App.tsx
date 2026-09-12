@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { SiteQrCode } from './components/SiteQrCode'
 import { MultiPhoneGame } from './modes/MultiPhoneGame'
 import { SinglePhoneGame } from './modes/SinglePhoneGame'
 import { checkRoomHasHost } from './lib/roomPresence'
@@ -38,6 +39,8 @@ export default function App() {
             width={1024}
             height={1024}
           />
+
+          <SiteQrCode />
 
           {hostOnline === null && (
             <p className="lede">Procurando partida…</p>
