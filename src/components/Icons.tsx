@@ -57,3 +57,14 @@ export function CrownIcon({ className }: IconProps) {
     </svg>
   )
 }
+
+export function QrIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="16" height="16" viewBox="0 0 16 16" aria-hidden>
+      <path
+        fill="currentColor"
+        d="M1 1h6v6H1V1zm1.5 1.5v3h3v-3h-3zM9 1h6v6H9V1zm1.5 1.5v3h3v-3h-3zM1 9h6v6H1V9zm1.5 1.5v3h3v-3h-3zM9 9h2.2v2.2H9V9zm2.8 0H14v2.2h-2.2V9zM9 11.8h2.2V14H9v-2.2zm2.8 0H14V14h-2.2v-2.2z"
+      />
+    </svg>
+  )
+}
