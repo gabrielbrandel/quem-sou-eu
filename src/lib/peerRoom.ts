@@ -78,6 +78,9 @@ function createHostSession(
   let onRoom: ((room: RoomState) => void) | null = null
   let onError: ((message: string) => void) | null = null
   let onClose: (() => void) | null = null
+  let destroyed = false
+  let reconnectTimer: number | null = null
+  let reconnectAttempts = 0
 
   const broadcast = () => {
     onRoom?.(room)
@@ -92,17 +95,42 @@ function createHostSession(
     if (conn.open) conn.send(msg)
   }
 
+  const clearReconnectTimer = () => {
+    if (reconnectTimer !== null) {
+      window.clearTimeout(reconnectTimer)
+      reconnectTimer = null
+    }
+  }
+
+  const tryReconnect = () => {
+    if (destroyed || peer.destroyed) return
+    if (!peer.disconnected) return
+    reconnectAttempts += 1
+    if (reconnectAttempts > 12) {
+      onClose?.()
+      return
+    }
+    try {
+      peer.reconnect()
+    } catch {
+      const delay = Math.min(1000 * reconnectAttempts, 5000)
+      reconnectTimer = window.setTimeout(tryReconnect, delay)
+    }
+  }
+
   peer.on('connection', (conn) => {
     conn.on('data', (raw) => {
       const data = raw as ClientToHost
       if (data.type === 'join') {
-        if (room.phase !== 'lobby') {
-          sendError(conn, 'A partida já começou.')
-          return
-        }
-        if (room.players.some((p) => p.id === data.player.id)) {
+        const existing = room.players.find((p) => p.id === data.player.id)
+        // Reconexão do mesmo jogador (ex.: tela do anfitrião apagou e voltou)
+        if (existing) {
           connections.set(data.player.id, conn)
           broadcast()
+          return
+        }
+        if (room.phase !== 'lobby') {
+          sendError(conn, 'A partida já começou.')
           return
         }
         if (room.players.length >= 12) {
@@ -146,6 +174,10 @@ function createHostSession(
         }
         broadcast()
       }
+
+      if (data.type === 'ping') {
+        if (conn.open) conn.send({ type: 'sync', room } satisfies HostToClient)
+      }
     })
 
     conn.on('close', () => {
@@ -167,12 +199,32 @@ function createHostSession(
   })
 
   peer.on('error', (err) => {
+    // Falhas transitórias de rede no mobile: tenta reconectar em vez de derrubar a sala
+    if (err.type === 'network' || err.type === 'server-error' || err.type === 'socket-error') {
+      tryReconnect()
+      return
+    }
     onError?.(err.message || 'Erro de conexão do anfitrião.')
   })
 
   peer.on('disconnected', () => {
-    onClose?.()
+    if (destroyed) return
+    // Não encerra a partida: reconecta no PeerServer mantendo o mesmo ID e o estado da sala
+    tryReconnect()
   })
+
+  peer.on('open', () => {
+    reconnectAttempts = 0
+    clearReconnectTimer()
+    broadcast()
+  })
+
+  const onVisibility = () => {
+    if (document.visibilityState !== 'visible' || destroyed) return
+    if (peer.disconnected && !peer.destroyed) tryReconnect()
+  }
+  document.addEventListener('visibilitychange', onVisibility)
+  window.addEventListener('online', onVisibility)
 
   return {
     isHost: true,
@@ -251,6 +303,10 @@ function createHostSession(
       broadcast()
     },
     destroy: () => {
+      destroyed = true
+      clearReconnectTimer()
+      document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('online', onVisibility)
       for (const conn of connections.values()) conn.close()
       peer.destroy()
     },
@@ -270,29 +326,120 @@ async function joinRoom(
   let onRoom: ((room: RoomState) => void) | null = null
   let onError: ((message: string) => void) | null = null
   let onClose: (() => void) | null = null
-
-  const conn = peer.connect(peerIdForRoom(roomId), { reliable: true })
+  let destroyed = false
+  let reconnectAttempts = 0
+  let reconnectTimer: number | null = null
+  let pingTimer: number | null = null
+  let conn = peer.connect(peerIdForRoom(roomId), { reliable: true })
   await waitConnOpen(conn)
 
-  const joinMsg: ClientToHost = {
-    type: 'join',
-    player: { id: myId, name: playerName },
+  const clearTimers = () => {
+    if (reconnectTimer !== null) {
+      window.clearTimeout(reconnectTimer)
+      reconnectTimer = null
+    }
+    if (pingTimer !== null) {
+      window.clearInterval(pingTimer)
+      pingTimer = null
+    }
   }
-  conn.send(joinMsg)
 
-  conn.on('data', (raw) => {
-    const data = raw as HostToClient
-    if (data.type === 'sync') {
-      room = data.room
-      onRoom?.(data.room)
+  const sendJoin = (connection: DataConnection) => {
+    const joinMsg: ClientToHost = {
+      type: 'join',
+      player: { id: myId, name: playerName },
     }
-    if (data.type === 'error' || data.type === 'kicked') {
-      onError?.(data.message)
+    if (connection.open) connection.send(joinMsg)
+  }
+
+  const bindConn = (connection: DataConnection) => {
+    connection.on('data', (raw) => {
+      const data = raw as HostToClient
+      if (data.type === 'sync') {
+        room = data.room
+        onRoom?.(data.room)
+        reconnectAttempts = 0
+      }
+      if (data.type === 'error' || data.type === 'kicked') {
+        onError?.(data.message)
+      }
+    })
+
+    connection.on('close', () => {
+      if (destroyed) return
+      scheduleReconnect()
+    })
+  }
+
+  const scheduleReconnect = () => {
+    if (destroyed) return
+    if (reconnectTimer !== null) return
+    reconnectAttempts += 1
+    if (reconnectAttempts > 10) {
+      onClose?.()
+      return
     }
+    const delay = Math.min(800 * reconnectAttempts, 4000)
+    reconnectTimer = window.setTimeout(() => {
+      reconnectTimer = null
+      void reconnect()
+    }, delay)
+  }
+
+  const reconnect = async () => {
+    if (destroyed || peer.destroyed) return
+    try {
+      if (peer.disconnected) {
+        try {
+          peer.reconnect()
+          await waitOpen(peer)
+        } catch {
+          // segue tentando connect mesmo assim
+        }
+      }
+      const next = peer.connect(peerIdForRoom(roomId), { reliable: true })
+      await waitConnOpen(next)
+      conn = next
+      bindConn(conn)
+      sendJoin(conn)
+    } catch {
+      scheduleReconnect()
+    }
+  }
+
+  bindConn(conn)
+  sendJoin(conn)
+
+  pingTimer = window.setInterval(() => {
+    if (destroyed || !conn.open) return
+    const msg: ClientToHost = { type: 'ping' }
+    conn.send(msg)
+  }, 12000)
+
+  const onVisibility = () => {
+    if (document.visibilityState !== 'visible' || destroyed) return
+    if (!conn.open) scheduleReconnect()
+  }
+  document.addEventListener('visibilitychange', onVisibility)
+  window.addEventListener('online', onVisibility)
+
+  peer.on('error', (err) => {
+    if (destroyed) return
+    if (err.type === 'network' || err.type === 'server-error' || err.type === 'socket-error') {
+      scheduleReconnect()
+      return
+    }
+    onError?.(err.message || 'Não foi possível entrar na sala.')
   })
 
-  conn.on('close', () => onClose?.())
-  peer.on('error', (err) => onError?.(err.message || 'Não foi possível entrar na sala.'))
+  peer.on('disconnected', () => {
+    if (destroyed) return
+    try {
+      peer.reconnect()
+    } catch {
+      scheduleReconnect()
+    }
+  })
 
   void roomName
 
@@ -338,6 +485,10 @@ async function joinRoom(
       onError?.('Só o anfitrião pode encerrar.')
     },
     destroy: () => {
+      destroyed = true
+      clearTimers()
+      document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('online', onVisibility)
       conn.close()
       peer.destroy()
     },
@@ -356,8 +507,24 @@ function waitHostPeer(peer: Peer) {
 
 function waitOpen(peer: Peer) {
   return new Promise<void>((resolve, reject) => {
-    peer.on('open', () => resolve())
-    peer.on('error', (err) => reject(err))
+    if (!peer.disconnected && peer.id) {
+      resolve()
+      return
+    }
+    const onOpen = () => {
+      cleanup()
+      resolve()
+    }
+    const onError = (err: Error) => {
+      cleanup()
+      reject(err)
+    }
+    const cleanup = () => {
+      peer.off('open', onOpen)
+      peer.off('error', onError)
+    }
+    peer.on('open', onOpen)
+    peer.on('error', onError)
   })
 }
 
