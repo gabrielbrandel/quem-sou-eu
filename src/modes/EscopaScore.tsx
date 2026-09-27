@@ -43,7 +43,10 @@ export function EscopaScore({ onBack }: Props) {
   const [maisOurosId, setMaisOurosId] = useState<string | null>(null)
   const [maisCartasId, setMaisCartasId] = useState<string | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const titleId = useId()
+  const [addingPlayer, setAddingPlayer] = useState(false)
+  const [addError, setAddError] = useState('')
+  const pointsTitleId = useId()
+  const addTitleId = useId()
 
   const ranked = useMemo(() => {
     const withTotals = players.map((p) => {
@@ -58,20 +61,42 @@ export function EscopaScore({ onBack }: Props) {
   const selected = ranked.find((p) => p.id === selectedId) ?? null
 
   useEffect(() => {
-    if (!selectedId) return
+    if (!selectedId && !addingPlayer) return
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setSelectedId(null)
+      if (event.key !== 'Escape') return
+      setSelectedId(null)
+      setAddingPlayer(false)
+      setAddError('')
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [selectedId])
+  }, [selectedId, addingPlayer])
+
+  const openAddModal = () => {
+    setSelectedId(null)
+    setDraftName('')
+    setAddError('')
+    setAddingPlayer(true)
+  }
+
+  const closeAddModal = () => {
+    setAddingPlayer(false)
+    setDraftName('')
+    setAddError('')
+  }
 
   const addPlayer = () => {
     const name = draftName.trim()
-    if (!name) return
-    if (players.some((p) => p.name.toLowerCase() === name.toLowerCase())) return
+    if (!name) {
+      setAddError('Digite um nome.')
+      return
+    }
+    if (players.some((p) => p.name.toLowerCase() === name.toLowerCase())) {
+      setAddError('Esse nome já está no placar.')
+      return
+    }
     setPlayers((prev) => [...prev, newPlayer(name)])
-    setDraftName('')
+    closeAddModal()
   }
 
   const addPoint = (id: string, key: PointKey) => {
@@ -115,9 +140,19 @@ export function EscopaScore({ onBack }: Props) {
 
   return (
     <section className="screen escopa-screen">
-      <button type="button" className="back-link" onClick={onBack}>
-        ← Voltar
-      </button>
+      <div className="escopa-topbar">
+        <button type="button" className="back-link" onClick={onBack}>
+          ← Voltar
+        </button>
+        <button
+          type="button"
+          className="escopa-add-fab"
+          aria-label="Adicionar pessoa"
+          onClick={openAddModal}
+        >
+          +
+        </button>
+      </div>
 
       <p className="eyebrow">Placar</p>
       <h2 className="screen-title escopa-title">
@@ -125,27 +160,8 @@ export function EscopaScore({ onBack }: Props) {
         Escopa
       </h2>
       <p className="screen-sub">
-        Toque no nome pra marcar pontos. Ouros e cartas: só uma pessoa leva.
+        Toque no + pra adicionar gente e no nome pra marcar pontos.
       </p>
-
-      <form
-        className="escopa-add"
-        onSubmit={(e) => {
-          e.preventDefault()
-          addPlayer()
-        }}
-      >
-        <input
-          className="field"
-          placeholder="Nome da pessoa"
-          value={draftName}
-          maxLength={18}
-          onChange={(e) => setDraftName(e.target.value)}
-        />
-        <button type="submit" className="btn btn-primary" disabled={!draftName.trim()}>
-          Adicionar
-        </button>
-      </form>
 
       {players.length > 0 && (
         <div className="escopa-bonuses">
@@ -183,7 +199,7 @@ export function EscopaScore({ onBack }: Props) {
       )}
 
       {players.length === 0 && (
-        <p className="form-hint">Adicione quem está jogando pra começar a marcar.</p>
+        <p className="form-hint">Toque no + pra adicionar quem está jogando.</p>
       )}
 
       <ol className="escopa-rank">
@@ -192,7 +208,10 @@ export function EscopaScore({ onBack }: Props) {
             <button
               type="button"
               className="escopa-person escopa-person-btn"
-              onClick={() => setSelectedId(player.id)}
+              onClick={() => {
+                setAddingPlayer(false)
+                setSelectedId(player.id)
+              }}
             >
               <div className="escopa-person-identity">
                 <span className="escopa-rank-pos">{index + 1}º</span>
@@ -222,6 +241,53 @@ export function EscopaScore({ onBack }: Props) {
         </button>
       )}
 
+      {addingPlayer && (
+        <div
+          className="escopa-modal-backdrop"
+          role="presentation"
+          onClick={closeAddModal}
+        >
+          <div
+            className="escopa-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={addTitleId}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <p className="eyebrow">Nova pessoa</p>
+            <h3 id={addTitleId} className="escopa-modal-title">
+              Adicionar
+            </h3>
+            <form
+              className="escopa-add-modal-form"
+              onSubmit={(e) => {
+                e.preventDefault()
+                addPlayer()
+              }}
+            >
+              <input
+                className="field field-lg"
+                placeholder="Nome da pessoa"
+                value={draftName}
+                maxLength={18}
+                onChange={(e) => {
+                  setDraftName(e.target.value)
+                  setAddError('')
+                }}
+                autoFocus
+              />
+              {addError && <p className="form-error">{addError}</p>}
+              <button type="submit" className="btn btn-primary btn-spark" disabled={!draftName.trim()}>
+                Adicionar
+              </button>
+              <button type="button" className="btn btn-ghost" onClick={closeAddModal}>
+                Cancelar
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {selected && (
         <div
           className="escopa-modal-backdrop"
@@ -232,11 +298,11 @@ export function EscopaScore({ onBack }: Props) {
             className="escopa-modal"
             role="dialog"
             aria-modal="true"
-            aria-labelledby={titleId}
+            aria-labelledby={pointsTitleId}
             onClick={(event) => event.stopPropagation()}
           >
             <p className="eyebrow">Marcar pontos</p>
-            <h3 id={titleId} className="escopa-modal-title">
+            <h3 id={pointsTitleId} className="escopa-modal-title">
               {selected.name}
             </h3>
             <p className="escopa-modal-total">{selected.total} pts</p>

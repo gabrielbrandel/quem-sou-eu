@@ -1529,3 +1529,39 @@
   width: 100%;
 }
 
+.escopa-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.escopa-add-fab {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, #ffe14a, var(--accent) 45%, var(--accent-deep));
+  color: #14110a;
+  font-size: 1.55rem;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 8px 20px rgba(255, 204, 0, 0.22);
+}
+
+.escopa-add-fab:active {
+  transform: scale(0.96);
+}
+
+.escopa-add-modal-form {
+  display: grid;
+  gap: 0.65rem;
+  width: 100%;
+  margin-top: 0.15rem;
+}
+
+.escopa-add-modal-form .btn {
+  width: 100%;
+  margin-top: 0;
+}
+
