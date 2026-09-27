@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { EscopaIcon } from '../components/Icons'
 
 type Props = {
@@ -42,6 +42,8 @@ export function EscopaScore({ onBack }: Props) {
   const [draftName, setDraftName] = useState('')
   const [maisOurosId, setMaisOurosId] = useState<string | null>(null)
   const [maisCartasId, setMaisCartasId] = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const titleId = useId()
 
   const ranked = useMemo(() => {
     const withTotals = players.map((p) => {
@@ -52,6 +54,17 @@ export function EscopaScore({ onBack }: Props) {
     })
     return withTotals.sort((a, b) => b.total - a.total || a.name.localeCompare(b.name))
   }, [players, maisOurosId, maisCartasId])
+
+  const selected = ranked.find((p) => p.id === selectedId) ?? null
+
+  useEffect(() => {
+    if (!selectedId) return
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSelectedId(null)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [selectedId])
 
   const addPlayer = () => {
     const name = draftName.trim()
@@ -81,6 +94,7 @@ export function EscopaScore({ onBack }: Props) {
     setPlayers((prev) => prev.filter((p) => p.id !== id))
     if (maisOurosId === id) setMaisOurosId(null)
     if (maisCartasId === id) setMaisCartasId(null)
+    if (selectedId === id) setSelectedId(null)
   }
 
   const toggleBonus = (
@@ -111,7 +125,7 @@ export function EscopaScore({ onBack }: Props) {
         Escopa
       </h2>
       <p className="screen-sub">
-        Toque pra somar ponto. Ouros e cartas: só uma pessoa leva.
+        Toque no nome pra marcar pontos. Ouros e cartas: só uma pessoa leva.
       </p>
 
       <form
@@ -174,51 +188,30 @@ export function EscopaScore({ onBack }: Props) {
 
       <ol className="escopa-rank">
         {ranked.map((player, index) => (
-          <li key={player.id} className="escopa-person">
-            <header className="escopa-person-head">
+          <li key={player.id}>
+            <button
+              type="button"
+              className="escopa-person escopa-person-btn"
+              onClick={() => setSelectedId(player.id)}
+            >
               <div className="escopa-person-identity">
                 <span className="escopa-rank-pos">{index + 1}º</span>
-                <div>
-                  <h3 className="escopa-person-name">{player.name}</h3>
-                  <p className="escopa-person-total">{player.total} pts</p>
+                <div className="escopa-person-copy">
+                  <span className="escopa-person-name">{player.name}</span>
+                  <span className="escopa-person-total">{player.total} pts</span>
+                  {(player.id === maisOurosId || player.id === maisCartasId) && (
+                    <span className="escopa-person-bonus">
+                      {player.id === maisOurosId ? 'Mais ouros' : ''}
+                      {player.id === maisOurosId && player.id === maisCartasId ? ' · ' : ''}
+                      {player.id === maisCartasId ? 'Mais cartas' : ''}
+                    </span>
+                  )}
                 </div>
               </div>
-              <button type="button" className="back-link" onClick={() => removePlayer(player.id)}>
-                Remover
-              </button>
-            </header>
-
-            <div className="escopa-point-grid">
-              {POINT_BUTTONS.map((btn) => (
-                <div key={btn.key} className="escopa-point-cell">
-                  <button
-                    type="button"
-                    className={`escopa-point-btn ${player[btn.key] > 0 ? 'has-points' : ''}`}
-                    onClick={() => addPoint(player.id, btn.key)}
-                  >
-                    <span className="escopa-point-label">{btn.label}</span>
-                    <span className="escopa-point-count">{player[btn.key]}</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="escopa-point-minus"
-                    aria-label={`Tirar ${btn.label} de ${player.name}`}
-                    disabled={player[btn.key] <= 0}
-                    onClick={() => removePoint(player.id, btn.key)}
-                  >
-                    −
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            {(player.id === maisOurosId || player.id === maisCartasId) && (
-              <p className="escopa-person-bonus">
-                {player.id === maisOurosId ? 'Mais ouros' : ''}
-                {player.id === maisOurosId && player.id === maisCartasId ? ' · ' : ''}
-                {player.id === maisCartasId ? 'Mais cartas' : ''}
-              </p>
-            )}
+              <span className="escopa-person-chevron" aria-hidden>
+                ›
+              </span>
+            </button>
           </li>
         ))}
       </ol>
@@ -227,6 +220,67 @@ export function EscopaScore({ onBack }: Props) {
         <button type="button" className="btn btn-ghost" onClick={resetScores}>
           Zerar placar
         </button>
+      )}
+
+      {selected && (
+        <div
+          className="escopa-modal-backdrop"
+          role="presentation"
+          onClick={() => setSelectedId(null)}
+        >
+          <div
+            className="escopa-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <p className="eyebrow">Marcar pontos</p>
+            <h3 id={titleId} className="escopa-modal-title">
+              {selected.name}
+            </h3>
+            <p className="escopa-modal-total">{selected.total} pts</p>
+
+            <div className="escopa-point-grid">
+              {POINT_BUTTONS.map((btn) => (
+                <div key={btn.key} className="escopa-point-cell">
+                  <button
+                    type="button"
+                    className={`escopa-point-btn ${selected[btn.key] > 0 ? 'has-points' : ''}`}
+                    onClick={() => addPoint(selected.id, btn.key)}
+                  >
+                    <span className="escopa-point-label">+ {btn.label}</span>
+                    <span className="escopa-point-count">{selected[btn.key]}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="escopa-point-minus"
+                    aria-label={`Tirar ${btn.label} de ${selected.name}`}
+                    disabled={selected[btn.key] <= 0}
+                    onClick={() => removePoint(selected.id, btn.key)}
+                  >
+                    −
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              className="btn btn-primary btn-spark"
+              onClick={() => setSelectedId(null)}
+            >
+              Pronto
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => removePlayer(selected.id)}
+            >
+              Remover pessoa
+            </button>
+          </div>
+        </div>
       )}
     </section>
   )

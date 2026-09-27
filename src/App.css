@@ -1455,3 +1455,77 @@
   font-weight: 600;
 }
 
+.escopa-person-btn {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.escopa-person-btn:active {
+  transform: scale(0.99);
+}
+
+.escopa-person-copy {
+  display: grid;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.escopa-person-chevron {
+  color: var(--muted);
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.escopa-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: end center;
+  padding: 1rem;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% 0%, rgba(255, 204, 0, 0.1), transparent 55%),
+    rgba(8, 8, 8, 0.78);
+  animation: qr-fade 0.22s ease;
+}
+
+.escopa-modal {
+  width: min(100%, 420px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem 1.15rem 1.15rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, #1f1c14 0%, #171717 55%);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+  text-align: center;
+  animation: qr-pop 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.escopa-modal-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  letter-spacing: -0.02em;
+}
+
+.escopa-modal-total {
+  margin: -0.25rem 0 0.15rem;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.escopa-modal .escopa-point-grid {
+  margin: 0.15rem 0 0.25rem;
+}
+
+.escopa-modal .btn {
+  width: 100%;
+}
+
