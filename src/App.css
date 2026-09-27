@@ -1335,3 +1335,123 @@
   font-size: 0.95rem;
 }
 
+.escopa-bonuses {
+  display: grid;
+  gap: 0.75rem;
+  width: 100%;
+  margin-top: 0.35rem;
+  text-align: left;
+}
+
+.escopa-bonus-block {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.escopa-bonus-label {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.escopa-bonus-picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.escopa-rank {
+  list-style: none;
+  margin: 0.35rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.85rem;
+  width: 100%;
+}
+
+.escopa-person-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.escopa-rank-pos {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.escopa-point-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.45rem;
+}
+
+.escopa-point-cell {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.2rem;
+  align-items: stretch;
+}
+
+.escopa-point-btn {
+  display: grid;
+  gap: 0.1rem;
+  justify-items: center;
+  padding: 0.55rem 0.35rem;
+  border-radius: 14px;
+  border: 1px solid var(--line-soft);
+  background: transparent;
+  color: var(--ink);
+}
+
+.escopa-point-btn.has-points {
+  border-color: rgba(255, 204, 0, 0.5);
+  background: var(--accent-soft);
+}
+
+.escopa-point-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.escopa-point-btn.has-points .escopa-point-label {
+  color: var(--accent);
+}
+
+.escopa-point-count {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.escopa-point-minus {
+  width: 1.7rem;
+  border-radius: 12px;
+  border: 1px solid var(--line-soft);
+  background: transparent;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.escopa-point-minus:disabled {
+  opacity: 0.25;
+}
+
+.escopa-person-bonus {
+  margin: 0;
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+

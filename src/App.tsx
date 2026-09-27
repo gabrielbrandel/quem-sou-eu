@@ -85,7 +85,7 @@ export default function App() {
                 <button type="button" className="mode-card" onClick={() => setMode('escopa')}>
                   <span className="mode-card-title">Escopa</span>
                   <span className="mode-card-text">
-                    Placar por pessoa: escopas, ouros, cartas, ás, 7, dama e rei.
+                    Placar por pessoa com ranking: toque pra marcar pontos.
                   </span>
                 </button>
               </div>
