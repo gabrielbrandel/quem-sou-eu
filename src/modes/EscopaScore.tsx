@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useState } from 'react'
-import { EscopaIcon } from '../components/Icons'
+import { EscopaIcon, TrashIcon } from '../components/Icons'
 
 type Props = {
   onBack: () => void
@@ -295,12 +295,21 @@ export function EscopaScore({ onBack }: Props) {
           onClick={() => setSelectedId(null)}
         >
           <div
-            className="escopa-modal"
+            className="escopa-modal escopa-modal-points"
             role="dialog"
             aria-modal="true"
             aria-labelledby={pointsTitleId}
             onClick={(event) => event.stopPropagation()}
           >
+            <button
+              type="button"
+              className="escopa-remove-icon"
+              aria-label={`Remover ${selected.name}`}
+              title="Remover pessoa"
+              onClick={() => removePlayer(selected.id)}
+            >
+              <TrashIcon />
+            </button>
             <p className="eyebrow">Marcar pontos</p>
             <h3 id={pointsTitleId} className="escopa-modal-title">
               {selected.name}
@@ -337,13 +346,6 @@ export function EscopaScore({ onBack }: Props) {
               onClick={() => setSelectedId(null)}
             >
               Pronto
-            </button>
-            <button
-              type="button"
-              className="btn btn-ghost"
-              onClick={() => removePlayer(selected.id)}
-            >
-              Remover pessoa
             </button>
           </div>
         </div>

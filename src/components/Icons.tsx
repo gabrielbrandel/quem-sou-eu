@@ -80,5 +80,16 @@ export function EscopaIcon({ className }: IconProps) {
   )
 }
 
+export function TrashIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="16" height="16" viewBox="0 0 16 16" aria-hidden>
+      <path
+        fill="currentColor"
+        d="M5.5 1.5h5l.5 1.25H14v1.25H2V2.75h3l.5-1.25zM3.25 5h9.5l-.55 8.1A1.5 1.5 0 0 1 10.7 14.5H5.3a1.5 1.5 0 0 1-1.5-1.4L3.25 5zm2.5 1.5v6h1.25v-6H5.75zm3.25 0v6H10.25v-6H9z"
+      />
+    </svg>
+  )
+}
+
 
 
