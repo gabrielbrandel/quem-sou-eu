@@ -68,3 +68,17 @@ export function QrIcon({ className }: IconProps) {
     </svg>
   )
 }
+
+
+export function EscopaIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 18 18" aria-hidden>
+      <rect x="2.5" y="3.5" width="9" height="12" rx="1.6" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="6.5" y="2" width="9" height="12" rx="1.6" fill="#1c1c1c" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M11 6.2l.7 1.4 1.55.22-1.12 1.1.26 1.55L11 9.7l-1.39.77.26-1.55-1.12-1.1 1.55-.22L11 6.2z" fill="currentColor" />
+    </svg>
+  )
+}
+
+
+
