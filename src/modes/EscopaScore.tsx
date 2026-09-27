@@ -5,7 +5,8 @@ type Props = {
   onBack: () => void
 }
 
-type SideScore = {
+type PlayerScore = {
+  id: string
   name: string
   escopas: number
   ouros: number
@@ -16,84 +17,93 @@ type SideScore = {
   rei: number
 }
 
-const emptySide = (name: string): SideScore => ({
-  name,
-  escopas: 0,
-  ouros: 0,
-  cartas: 0,
-  as: 0,
-  sete: 0,
-  dama: 0,
-  rei: 0,
-})
-
 type StatKey = 'escopas' | 'ouros' | 'cartas' | 'as' | 'sete' | 'dama' | 'rei'
 
-const STATS: { key: StatKey; label: string; hint: string; max?: number }[] = [
-  { key: 'escopas', label: 'Escopas', hint: '1 ponto cada' },
-  { key: 'ouros', label: 'Ouros', hint: 'Quem tiver mais leva 1' },
-  { key: 'cartas', label: 'Cartas', hint: 'Quem tiver mais leva 1' },
-  { key: 'as', label: 'Ás', hint: '1 ponto cada', max: 4 },
-  { key: 'sete', label: '7', hint: '1 ponto cada', max: 4 },
-  { key: 'dama', label: 'Dama', hint: '1 ponto cada', max: 4 },
-  { key: 'rei', label: 'Rei', hint: '1 ponto cada', max: 4 },
+const STATS: { key: StatKey; label: string }[] = [
+  { key: 'escopas', label: 'Escopas' },
+  { key: 'ouros', label: 'Ouros' },
+  { key: 'cartas', label: 'Cartas' },
+  { key: 'as', label: 'Ás' },
+  { key: 'sete', label: '7' },
+  { key: 'dama', label: 'Dama' },
+  { key: 'rei', label: 'Rei' },
 ]
 
-function clamp(value: number, max = 99) {
-  return Math.max(0, Math.min(max, value))
+function newPlayer(name: string): PlayerScore {
+  return {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    name,
+    escopas: 0,
+    ouros: 0,
+    cartas: 0,
+    as: 0,
+    sete: 0,
+    dama: 0,
+    rei: 0,
+  }
 }
 
-function facePoints(side: SideScore) {
-  return side.escopas + side.as + side.sete + side.dama + side.rei
+function facePoints(p: PlayerScore) {
+  return p.escopas + p.as + p.sete + p.dama + p.rei
 }
 
 export function EscopaScore({ onBack }: Props) {
-  const [sides, setSides] = useState<[SideScore, SideScore]>([
-    emptySide('Time A'),
-    emptySide('Time B'),
-  ])
+  const [players, setPlayers] = useState<PlayerScore[]>([])
+  const [draftName, setDraftName] = useState('')
 
   const totals = useMemo(() => {
-    const [a, b] = sides
-    const mostOurosA = a.ouros > b.ouros
-    const mostOurosB = b.ouros > a.ouros
-    const mostCartasA = a.cartas > b.cartas
-    const mostCartasB = b.cartas > a.cartas
+    if (players.length === 0) return new Map<string, number>()
 
-    const totalA = facePoints(a) + (mostOurosA ? 1 : 0) + (mostCartasA ? 1 : 0)
-    const totalB = facePoints(b) + (mostOurosB ? 1 : 0) + (mostCartasB ? 1 : 0)
+    const maxOuros = Math.max(...players.map((p) => p.ouros))
+    const maxCartas = Math.max(...players.map((p) => p.cartas))
+    const ourosTied = players.filter((p) => p.ouros === maxOuros).length > 1
+    const cartasTied = players.filter((p) => p.cartas === maxCartas).length > 1
 
-    return {
-      a: totalA,
-      b: totalB,
-      mostOurosA,
-      mostOurosB,
-      mostCartasA,
-      mostCartasB,
+    const map = new Map<string, number>()
+    for (const p of players) {
+      let total = facePoints(p)
+      if (maxOuros > 0 && p.ouros === maxOuros && !ourosTied) total += 1
+      if (maxCartas > 0 && p.cartas === maxCartas && !cartasTied) total += 1
+      map.set(p.id, total)
     }
-  }, [sides])
+    return map
+  }, [players])
 
-  const bump = (index: 0 | 1, key: StatKey, delta: number) => {
-    setSides((prev) => {
-      const next = [...prev] as [SideScore, SideScore]
-      const side = { ...next[index] }
-      const max = STATS.find((s) => s.key === key)?.max ?? 99
-      side[key] = clamp(side[key] + delta, max)
-      next[index] = side
-      return next
-    })
+  const addPlayer = () => {
+    const name = draftName.trim()
+    if (!name) return
+    if (players.some((p) => p.name.toLowerCase() === name.toLowerCase())) return
+    setPlayers((prev) => [...prev, newPlayer(name)])
+    setDraftName('')
   }
 
-  const rename = (index: 0 | 1, name: string) => {
-    setSides((prev) => {
-      const next = [...prev] as [SideScore, SideScore]
-      next[index] = { ...next[index], name }
-      return next
-    })
+  const bump = (id: string, key: StatKey, delta: number) => {
+    setPlayers((prev) =>
+      prev.map((p) => {
+        if (p.id !== id) return p
+        const max = key === 'as' || key === 'sete' || key === 'dama' || key === 'rei' ? 4 : 99
+        return { ...p, [key]: Math.max(0, Math.min(max, p[key] + delta)) }
+      }),
+    )
   }
 
-  const reset = () => {
-    setSides((prev) => [emptySide(prev[0].name), emptySide(prev[1].name)])
+  const removePlayer = (id: string) => {
+    setPlayers((prev) => prev.filter((p) => p.id !== id))
+  }
+
+  const resetScores = () => {
+    setPlayers((prev) =>
+      prev.map((p) => ({
+        ...p,
+        escopas: 0,
+        ouros: 0,
+        cartas: 0,
+        as: 0,
+        sete: 0,
+        dama: 0,
+        rei: 0,
+      })),
+    )
   }
 
   return (
@@ -108,81 +118,84 @@ export function EscopaScore({ onBack }: Props) {
         Escopa
       </h2>
       <p className="screen-sub">
-        Conta escopas, ouros, cartas e as figuras. Ás, 7, dama e rei valem 1 ponto cada.
+        Por pessoa. Escopas, ás, 7, dama e rei valem 1. Mais ouros ou mais cartas: +1.
       </p>
 
-      <div className="escopa-totals" aria-live="polite">
-        <div className={`escopa-total ${totals.a > totals.b ? 'is-lead' : ''}`}>
-          <span className="escopa-total-name">{sides[0].name || 'Time A'}</span>
-          <span className="escopa-total-score">{totals.a}</span>
-        </div>
-        <div className={`escopa-total ${totals.b > totals.a ? 'is-lead' : ''}`}>
-          <span className="escopa-total-name">{sides[1].name || 'Time B'}</span>
-          <span className="escopa-total-score">{totals.b}</span>
-        </div>
+      <form
+        className="escopa-add"
+        onSubmit={(e) => {
+          e.preventDefault()
+          addPlayer()
+        }}
+      >
+        <input
+          className="field"
+          placeholder="Nome da pessoa"
+          value={draftName}
+          maxLength={18}
+          onChange={(e) => setDraftName(e.target.value)}
+        />
+        <button type="submit" className="btn btn-primary" disabled={!draftName.trim()}>
+          Adicionar
+        </button>
+      </form>
+
+      {players.length === 0 && (
+        <p className="form-hint">Adicione quem está jogando pra começar a marcar.</p>
+      )}
+
+      <div className="escopa-people">
+        {players.map((player) => (
+          <article key={player.id} className="escopa-person">
+            <header className="escopa-person-head">
+              <div>
+                <h3 className="escopa-person-name">{player.name}</h3>
+                <p className="escopa-person-total">{totals.get(player.id) ?? 0} pts</p>
+              </div>
+              <button
+                type="button"
+                className="back-link"
+                onClick={() => removePlayer(player.id)}
+              >
+                Remover
+              </button>
+            </header>
+
+            <ul className="escopa-stats">
+              {STATS.map((stat) => (
+                <li key={stat.key} className="escopa-stat">
+                  <span className="escopa-stat-label">{stat.label}</span>
+                  <div className="escopa-stat-controls">
+                    <button
+                      type="button"
+                      className="escopa-step"
+                      aria-label={`Diminuir ${stat.label} de ${player.name}`}
+                      onClick={() => bump(player.id, stat.key, -1)}
+                    >
+                      −
+                    </button>
+                    <span className="escopa-stat-value">{player[stat.key]}</span>
+                    <button
+                      type="button"
+                      className="escopa-step"
+                      aria-label={`Aumentar ${stat.label} de ${player.name}`}
+                      onClick={() => bump(player.id, stat.key, 1)}
+                    >
+                      +
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </article>
+        ))}
       </div>
 
-      <div className="escopa-boards">
-        {sides.map((side, index) => {
-          const i = index as 0 | 1
-          const bonusOuros = i === 0 ? totals.mostOurosA : totals.mostOurosB
-          const bonusCartas = i === 0 ? totals.mostCartasA : totals.mostCartasB
-          return (
-            <article key={i} className="escopa-board">
-              <label className="sr-only" htmlFor={`escopa-name-${i}`}>
-                Nome do time {i + 1}
-              </label>
-              <input
-                id={`escopa-name-${i}`}
-                className="field escopa-name"
-                value={side.name}
-                maxLength={18}
-                onChange={(e) => rename(i, e.target.value)}
-              />
-
-              <ul className="escopa-stats">
-                {STATS.map((stat) => (
-                  <li key={stat.key} className="escopa-stat">
-                    <div className="escopa-stat-copy">
-                      <span className="escopa-stat-label">{stat.label}</span>
-                      <span className="escopa-stat-hint">{stat.hint}</span>
-                    </div>
-                    <div className="escopa-stat-controls">
-                      <button
-                        type="button"
-                        className="escopa-step"
-                        aria-label={`Diminuir ${stat.label}`}
-                        onClick={() => bump(i, stat.key, -1)}
-                      >
-                        −
-                      </button>
-                      <span className="escopa-stat-value">{side[stat.key]}</span>
-                      <button
-                        type="button"
-                        className="escopa-step"
-                        aria-label={`Aumentar ${stat.label}`}
-                        onClick={() => bump(i, stat.key, 1)}
-                      >
-                        +
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-
-              <p className="escopa-bonus">
-                {bonusOuros ? '• Mais ouros (+1)' : '• Ouros empatados ou atrás'}
-                <br />
-                {bonusCartas ? '• Mais cartas (+1)' : '• Cartas empatadas ou atrás'}
-              </p>
-            </article>
-          )
-        })}
-      </div>
-
-      <button type="button" className="btn btn-ghost" onClick={reset}>
-        Zerar placar
-      </button>
+      {players.length > 0 && (
+        <button type="button" className="btn btn-ghost" onClick={resetScores}>
+          Zerar placar
+        </button>
+      )}
     </section>
   )
 }
