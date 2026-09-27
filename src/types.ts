@@ -12,7 +12,7 @@ export type Assignment = {
   theme: string
 }
 
-export type GameMode = 'single' | 'multi' | 'timer' | null
+export type GameMode = 'single' | 'multi' | 'escopa' | null
 
 export type RoomPlayer = {
   id: string

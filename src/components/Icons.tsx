@@ -69,13 +69,13 @@ export function QrIcon({ className }: IconProps) {
   )
 }
 
-export function TimerIcon({ className }: IconProps) {
+
+export function EscopaIcon({ className }: IconProps) {
   return (
     <svg className={className} width="18" height="18" viewBox="0 0 18 18" aria-hidden>
-      <circle cx="9" cy="10" r="6.2" fill="none" stroke="currentColor" strokeWidth="1.6" />
-      <path d="M9 6.8v3.4l2.2 1.3" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-      <path d="M6.8 2.2h4.4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-      <path d="M9 2.2v1.4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <rect x="2.5" y="3.5" width="9" height="12" rx="1.6" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="6.5" y="2" width="9" height="12" rx="1.6" fill="#1c1c1c" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M11 6.2l.7 1.4 1.55.22-1.12 1.1.26 1.55L11 9.7l-1.39.77.26-1.55-1.12-1.1 1.55-.22L11 6.2z" fill="currentColor" />
     </svg>
   )
 }
