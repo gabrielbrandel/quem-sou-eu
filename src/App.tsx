@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { SiteQrCode } from './components/SiteQrCode'
+import { GameTimer } from './modes/GameTimer'
 import { MultiPhoneGame } from './modes/MultiPhoneGame'
 import { SinglePhoneGame } from './modes/SinglePhoneGame'
 import { checkRoomHasHost } from './lib/roomPresence'
@@ -52,6 +53,9 @@ export default function App() {
               <button type="button" className="btn btn-primary btn-spark" onClick={() => setMode('multi')}>
                 Jogar
               </button>
+              <button type="button" className="btn btn-ghost btn-spark" onClick={() => setMode('timer')}>
+                Contador
+              </button>
               <p className="room-people room-people-home">
                 <span className="room-people-dot" aria-hidden />
                 Anfitrião online
@@ -78,6 +82,12 @@ export default function App() {
                     Você inicia a partida, escolhe o tema e os outros entram pelo Jogar.
                   </span>
                 </button>
+                <button type="button" className="mode-card" onClick={() => setMode('timer')}>
+                  <span className="mode-card-title">Contador</span>
+                  <span className="mode-card-text">
+                    Marca o tempo das rodadas: 30s, 1 min, 2 min e mais.
+                  </span>
+                </button>
               </div>
             </>
           )}
@@ -86,6 +96,7 @@ export default function App() {
 
       {mode === 'single' && <SinglePhoneGame onBack={() => setMode(null)} />}
       {mode === 'multi' && <MultiPhoneGame onBack={() => setMode(null)} />}
+      {mode === 'timer' && <GameTimer onBack={() => setMode(null)} />}
     </div>
   )
 }

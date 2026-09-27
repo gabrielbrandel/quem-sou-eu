@@ -1134,3 +1134,87 @@
     border-inline: 1px solid var(--line-soft);
   }
 }
+
+
+.timer-screen {
+  text-align: center;
+}
+
+.timer-title {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+}
+
+.timer-title-icon {
+  color: var(--accent);
+}
+
+.timer-display {
+  margin: 1.1rem auto 0.35rem;
+  width: min(100%, 320px);
+  min-height: 8.5rem;
+  display: grid;
+  place-items: center;
+  gap: 0.25rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 0%, rgba(255, 204, 0, 0.12), transparent 60%),
+    var(--bg-card);
+  animation: rise 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.timer-display.is-running {
+  border-color: rgba(255, 204, 0, 0.45);
+}
+
+.timer-display.is-done {
+  border-color: rgba(255, 107, 107, 0.55);
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 0%, rgba(255, 107, 107, 0.16), transparent 60%),
+    var(--bg-card);
+  animation: timer-pulse 0.7s ease;
+}
+
+.timer-digits {
+  font-family: var(--font-display);
+  font-size: clamp(3.4rem, 18vw, 4.6rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.timer-done-label {
+  color: var(--danger);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+.timer-presets {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.45rem;
+  margin: 0.85rem 0 0.35rem;
+}
+
+.timer-actions {
+  display: grid;
+  gap: 0.65rem;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.timer-actions .btn {
+  width: 100%;
+}
+
+@keyframes timer-pulse {
+  0% { transform: scale(0.97); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}

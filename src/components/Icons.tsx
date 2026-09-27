@@ -68,3 +68,15 @@ export function QrIcon({ className }: IconProps) {
     </svg>
   )
 }
+
+export function TimerIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 18 18" aria-hidden>
+      <circle cx="9" cy="10" r="6.2" fill="none" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M9 6.8v3.4l2.2 1.3" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M6.8 2.2h4.4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M9 2.2v1.4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  )
+}
+
