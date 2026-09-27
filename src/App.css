@@ -1508,6 +1508,38 @@
   animation: qr-pop 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+.escopa-modal-points {
+  position: relative;
+}
+
+.escopa-remove-icon {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.7rem;
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  opacity: 0.55;
+  transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.escopa-remove-icon:hover,
+.escopa-remove-icon:focus-visible {
+  opacity: 1;
+  color: #e8a0a0;
+  background: rgba(255, 255, 255, 0.04);
+  outline: none;
+}
+
+.escopa-remove-icon:active {
+  transform: scale(0.94);
+}
+
 .escopa-modal-title {
   margin: 0;
   font-family: var(--font-display);
